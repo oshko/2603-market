@@ -41,38 +41,48 @@ router.post("/", async (req, res) => {
 });
 
 // POST /orders/:id/products
-r; // POST /orders/:id/products
-router.post("/:id/products", async (req, res) => {
-  const { id: order_id } = req.params;
-  const { quantity, productId } = req.body;
+router.post("/:id/products", async (req, res, next) => {
+  try {
+    const { id: order_id } = req.params;
+    const { productId, quantity } = req.body;
 
-  if (!quantity || !productId) {
-    return res.status(400).send("Request requires quantity and product ID.");
+    // 1. Request body must include productId and quantity
+    if (productId === undefined || quantity === undefined) {
+      return res
+        .status(400)
+        .send("Request must include productId and quantity.");
+    }
+
+    // 2. Order must exist
+    const order = await getOrderbyOrderId({ id: order_id });
+
+    if (!order) {
+      return res.status(404).send("Order does not exist.");
+    }
+
+    // 3. Logged-in user must own the order
+    if (order.user_id !== req.user.id) {
+      return res.status(403).send("You do not own this order.");
+    }
+
+    // 4. Product must exist
+    const product = await getProductById({ id: productId });
+
+    if (!product) {
+      return res.status(400).send("Product does not exist.");
+    }
+
+    // 5. Create orders_products record
+    const orderProduct = await createOrderProduct({
+      order_id,
+      product_id: productId,
+      quantity,
+    });
+
+    return res.status(201).send(orderProduct);
+  } catch (error) {
+    next(error);
   }
-
-  const product = await getProductById({ id: productId });
-
-  if (!product) {
-    return res.status(404).send("Product does not exist.");
-  }
-
-  const order = await getOrderbyOrderId({ id: order_id });
-
-  if (!order) {
-    return res.status(404).send("Order does not exist.");
-  }
-
-  if (order.user_id !== req.user.id) {
-    return res.status(403).send("You are not the owner of this order.");
-  }
-
-  const newOrderProduct = await createOrderProduct({
-    order_id,
-    product_id: productId,
-    quantity,
-  });
-
-  return res.status(201).send(newOrderProduct);
 });
 
 export default router;
