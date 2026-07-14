@@ -5,7 +5,7 @@ import {
   getProducts,
 } from "#db/queries/productQueries";
 import requireBody from "#middleware/requireBody";
-import { getProductIDbyOrder } from "#db/queries/junctionT/ordersProductsQueries";
+import { getProductIDbyOrder } from "#db/queries/ordersProductsQueries";
 import requireUser from "#middleware/requireUser";
 const router = express.Router();
 

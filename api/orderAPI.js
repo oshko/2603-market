@@ -7,9 +7,9 @@ import {
 import express from "express";
 import requireUser from "#middleware/requireUser";
 import {
-  createOrdersProducts,
+  createOrderProduct,
   getProductsByOrderId,
-} from "#db/queries/junctionT/ordersProductsQueries";
+} from "#db/queries/ordersProductsQueries";
 import { getProductById } from "#db/queries/productQueries";
 
 const router = express.Router();
@@ -41,35 +41,38 @@ router.post("/", async (req, res) => {
 });
 
 // POST /orders/:id/products
+r; // POST /orders/:id/products
 router.post("/:id/products", async (req, res) => {
   const { id: order_id } = req.params;
   const { quantity, productId } = req.body;
-  if (!quantity || !productId)
-    return res.status(400).send("Request required Quantity and Product ID!");
-  const isProductExist = await getProductById({ id: productId });
-  if (!isProductExist)
-    return res.status(400).send("There is no product based on your request!");
-  const isOrderExist = await getOrderbyOrderId({ id: order_id });
-  if (!isOrderExist) return res.status(404).send("Order is not exist!");
-  if (isOrderExist.user_id !== req.user.id)
-    return res.status(403).send("Your are not owner or this order!");
-  const newOrderAndProduct = await createOrdersProducts({
+
+  if (!quantity || !productId) {
+    return res.status(400).send("Request requires quantity and product ID.");
+  }
+
+  const product = await getProductById({ id: productId });
+
+  if (!product) {
+    return res.status(404).send("Product does not exist.");
+  }
+
+  const order = await getOrderbyOrderId({ id: order_id });
+
+  if (!order) {
+    return res.status(404).send("Order does not exist.");
+  }
+
+  if (order.user_id !== req.user.id) {
+    return res.status(403).send("You are not the owner of this order.");
+  }
+
+  const newOrderProduct = await createOrderProduct({
     order_id,
-    productId,
+    product_id: productId,
     quantity,
   });
-  if (!newOrderAndProduct)
-    return res.status(404).send("There is no order based on this ID!");
-  return res.status(201).send(newOrderAndProduct);
-});
-// GET /orders/:id/products
-router.get("/:id/products", async (req, res) => {
-  const { id } = req.params;
-  const isOrderExist = await getOrderbyOrderId({ id });
-  if (!isOrderExist)
-    return res.status(404).send("There is not order exist based on this ID");
-  const productsOfOrder = await getProductsByOrderId({ id });
-  res.status(200).send(productsOfOrder);
+
+  return res.status(201).send(newOrderProduct);
 });
 
 export default router;

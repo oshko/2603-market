@@ -3,7 +3,7 @@ import { users, products, orders, orders_products } from "#db/seedData";
 import { createUser } from "#db/queries/userQueries";
 import { createProduct } from "#db/queries/productQueries";
 import { createOrder } from "#db/queries/orderQueries";
-import { createOrdersProducts } from "#db/queries/ordersProductsQueries";
+import { createOrderProduct } from "#db/queries/ordersProductsQueries";
 
 await db.connect();
 await seed();
