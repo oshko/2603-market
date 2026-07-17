@@ -1,9 +1,12 @@
 import db from "#db/client";
-// This needs to done after juntion table done!
+
+// This needs to done after junction table done!
 export async function getOrders() {
-  const { rows: orders } = await db.query(`
+  const { rows: orders } = await db.query(
+    `
     SELECT * FROM orders
-    `);
+    `,
+  );
   return orders;
 }
 
@@ -21,6 +24,7 @@ export async function getOrdersByUserId({ id }) {
   );
   return order;
 }
+
 export async function getOrderbyOrderId({ id }) {
   const {
     rows: [order],
@@ -33,6 +37,7 @@ export async function getOrderbyOrderId({ id }) {
   );
   return order;
 }
+
 export async function createOrder({ date, note, user_id }) {
   const sql = `
     INSERT INTO orders (date, note, user_id)

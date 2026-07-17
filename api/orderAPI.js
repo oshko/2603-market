@@ -84,5 +84,22 @@ router.post("/:id/products", async (req, res, next) => {
     next(error);
   }
 });
-
+// GET /orders/:id/products
+router.get("/:id/products", async (req, res) => {
+  try {
+    const { id } = req.params;
+    //console.log(id);
+    const order = await getOrderbyOrderId({ id });
+    if (!order) {
+      return res.status(400).send("Order does not exist.");
+    }
+    if (order.user_id !== req.user.id) {
+      return res.status(403).send("You do not own this order.");
+    }
+    const products = await getProductsByOrderId({ id });
+    return res.status(200).send(products);
+  } catch (error) {
+    next(error);
+  }
+});
 export default router;
